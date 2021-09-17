@@ -3,8 +3,7 @@ MAINTAINER Travis A
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN apt install cloud-init
-RUN pip3 install -r requirements.txt
+RUN pip3 install Flask
 
 COPY . .
 
