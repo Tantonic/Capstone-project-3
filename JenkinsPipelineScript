@@ -1,0 +1,76 @@
+pipeline {
+ environment{
+     registry = 'travisantonich/pythoninstall'
+     registryCredential='dockerhub'
+     dockerImage=''
+ }
+  agent { label 'slave' }
+  stages {
+      
+    stage(‘CloningGit’) {
+      steps {
+        cleanWs()
+        git branch: 'main', credentialsId: '7ee3f607-3d05-42d8-ae94-a395d2949703', url: 'https://github.com/Tantonic/Capstone-project-3'
+      }
+    }
+    
+    stage('CleanupContainers'){
+        steps{
+            script {
+                sh 'docker rm -f $(docker ps -aq)'
+            }
+        }
+    }
+    
+    stage(‘Buildingimage’) {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+    
+    stage(‘DeployImage’) {
+      steps{
+        script {
+          docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
+        }
+      }
+    }
+
+    stage(‘RunImage’) {
+      steps{
+        script {
+            dockerImage.run('--publish 5000:5000')
+        }
+      }
+    }
+
+    stage(‘ContainerCheck’) {
+      steps{
+        script {
+            sh 'docker ps -a'
+            sh 'docker images -a'
+        }
+      }
+    }
+    
+    stage('Curl Container:5000'){
+        steps{
+            script {
+                sh 'curl localhost:5000'
+            }
+        }
+    }
+    
+    stage('Automated Test') {
+        steps{
+        sh 'mvn compile'
+        sh 'mvn test'
+        }
+    }
+    
+  }    
+}
