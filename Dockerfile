@@ -3,7 +3,7 @@ MAINTAINER Travis A
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-RUN sudo apt install cloud-init
+RUN apt install cloud-init
 RUN pip3 install -r requirements.txt
 
 COPY . .
